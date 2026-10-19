@@ -1,0 +1,74 @@
+.header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  border-bottom: 1px solid var(--edge);
+}
+
+.wordmark {
+  font-family: var(--font-read);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.wordmark:hover {
+  text-decoration: none;
+  opacity: 0.72;
+}
+
+/* ── 怎么用：原生 details，零 JS，键盘可达 ── */
+
+.help {
+  position: relative;
+}
+
+.helpTrigger {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--quiet);
+  cursor: pointer;
+  list-style: none;
+  transition: color 160ms linear;
+}
+
+.helpTrigger::-webkit-details-marker {
+  display: none;
+}
+
+.helpTrigger:hover {
+  color: var(--ink);
+}
+
+.helpPanel {
+  position: absolute;
+  top: calc(100% + 14px);
+  right: 0;
+  z-index: 10;
+  width: 288px;
+  padding: 20px 22px;
+  border: 1px solid var(--edge);
+  border-radius: var(--r-control);
+  background: var(--paper);
+  box-shadow: 0 12px 32px -16px rgba(26, 23, 33, 0.24);
+}
+
+.helpPanel p {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--quiet);
+}
+
+.helpPanel p + p {
+  margin-top: 10px;
+}
+
+@media (max-width: 640px) {
+  .helpPanel {
+    width: min(288px, calc(100vw - 40px));
+  }
+}

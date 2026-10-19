@@ -1,0 +1,9 @@
+---
+description: 项目全局开发规范
+globs: 
+alwaysApply: true
+---
+1. 技术栈：前端使用 Vue3 + TypeScript + Vite，后端使用 Node.js + Express。
+2. 代码风格：必须使用 ESLint + Prettier，变量命名采用驼峰命名法。
+3. 注释要求：所有核心函数必须包含 JSDoc 注释，说明参数和返回值。
+4. 错误处理：禁止使用裸的 try-catch，必须统一封装全局错误处理中间件。

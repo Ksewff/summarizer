@@ -1,0 +1,157 @@
+/* ─────────────────────────────────────────────────────────────
+   Précis · 设计 Token
+   一张纸，两种字，一处紫。
+   ───────────────────────────────────────────────────────────── */
+
+:root {
+  /* 色彩：6 个命名色，页面只由它们构成 */
+  --paper: #fcfbfe; /* 页面底色，带极淡紫调的近白 */
+  --haze: #f2effa; /* 浮起表面，只给输入框用 */
+  --mist: #e2dcf3; /* 发丝线、分隔、禁用 */
+  --quiet: #6b6480; /* 次级文字 */
+  --ink: #1a1721; /* 标题与正文 */
+  --iris: #5b4ba6; /* 唯一的动作色 */
+  --iris-hover: #4a3c8d; /* 动作色的 hover 态，深色模式下另配一套 */
+
+  /* 功能色：不参与视觉构成，禁止用作状态唯一载体 */
+  --bloom: #a99be0; /* 仅出现在压缩动画里 */
+  --alert: #a83a54;
+
+  /* 高对比模式下才启用的边框色（对 paper 实测 3.42:1） */
+  --edge: var(--mist);
+
+  /* 字体：界面体说机器的话，阅读体说内容的话 */
+  --font-ui: -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-read: "Songti SC", "Noto Serif SC", "Source Han Serif SC", "STSong",
+    "SimSun", serif;
+
+  /* 度量 */
+  --shell: 1080px;
+  --measure: 680px;
+
+  /* 圆角：控制件 12px，压缩条 2px。不用胶囊形 */
+  --r-control: 12px;
+  --r-bar: 2px;
+
+  /* 动效曲线 */
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* 深色模式：同结构换值 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #17151d;
+    --haze: #1f1c28;
+    --mist: #302b40;
+    --quiet: #9c95b0;
+    --ink: #f3f1f7;
+    --iris: #b4a6f0; /* 对 #17151d 实测 8.3:1 */
+    --iris-hover: #c9bff8;
+    --bloom: #6f5fc4;
+    --alert: #e08aa0;
+  }
+}
+
+/* 高对比：发丝线提升到可辨识的 3:1 */
+@media (prefers-contrast: more) {
+  :root {
+    --edge: #8b84a8;
+  }
+}
+
+/* ── 重置 ───────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100dvh;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+p {
+  margin: 0;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+a {
+  color: var(--iris);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* 全站焦点环：绝不移除 */
+:focus-visible {
+  outline: 2px solid var(--iris);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: var(--bloom);
+  color: var(--ink);
+}
+
+/* ── 可访问性工具 ───────────────────────────────────────── */
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── 减少动效 ───────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>番茄钟</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream: {
+              50: "#faf8f5",
+              100: "#f5f0e8",
+              200: "#ebe3d6",
+              300: "#d9cdb8",
+            },
+            sage: {
+              400: "#8fa89a",
+              500: "#6b8f7a",
+              600: "#557a66",
+              700: "#456355",
+            },
+          },
+          fontFamily: {
+            soft: ['"Segoe UI"', '"PingFang SC"', '"Hiragino Sans GB"', '"Microsoft YaHei"', "sans-serif"],
+          },
+          keyframes: {
+            breathe: {
+              "0%, 100%": { transform: "scale(1)", opacity: "1" },
+              "50%": { transform: "scale(1.015)", opacity: "0.92" },
+            },
+            fadeIn: {
+              from: { opacity: "0", transform: "translateY(8px)" },
+              to: { opacity: "1", transform: "translateY(0)" },
+            },
+          },
+          animation: {
+            breathe: "breathe 4s ease-in-out infinite",
+            "fade-in": "fadeIn 0.6s ease-out",
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    body {
+      background:
+        radial-gradient(ellipse at 30% 20%, rgba(143, 168, 154, 0.12) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 80%, rgba(217, 205, 184, 0.35) 0%, transparent 45%),
+        #f5f0e8;
+    }
+
+    .progress-ring {
+      transition: stroke-dashoffset 0.35s ease;
+    }
+
+    .time-digit {
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.04em;
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body class="min-h-screen font-soft flex items-center justify-center p-6 select-none">
+  <main class="w-full max-w-md mx-auto flex flex-col items-center animate-fade-in">
+    <header class="mb-10 text-center">
+      <h1 class="text-3xl md:text-4xl font-light tracking-wide text-sage-700">番茄钟</h1>
+      <p class="mt-2 text-base text-sage-400 font-light tracking-wider">专注 · 呼吸 · 休息</p>
+    </header>
+
+    <!-- Circular progress -->
+    <div class="relative w-72 h-72 md:w-80 md:h-80 animate-breathe">
+      <svg class="w-full h-full -rotate-90" viewBox="0 0 200 200" aria-hidden="true">
+        <!-- Track -->
+        <circle
+          cx="100"
+          cy="100"
+          r="88"
+          fill="none"
+          stroke="#ebe3d6"
+          stroke-width="6"
+        />
+        <!-- Progress -->
+        <circle
+          id="progressRing"
+          class="progress-ring"
+          cx="100"
+          cy="100"
+          r="88"
+          fill="none"
+          stroke="#6b8f7a"
+          stroke-width="6"
+          stroke-linecap="round"
+          stroke-dasharray="552.92"
+          stroke-dashoffset="0"
+        />
+      </svg>
+
+      <div class="absolute inset-0 flex flex-col items-center justify-center">
+        <span
+          id="timeDisplay"
+          class="time-digit text-5xl md:text-6xl font-light text-sage-700"
+        >25:00</span>
+        <span id="statusLabel" class="mt-3 text-sm tracking-widest text-sage-400 font-light uppercase">
+          就绪
+        </span>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="mt-12 flex items-center gap-4 md:gap-5">
+      <button
+        id="btnStart"
+        type="button"
+        class="px-7 py-3 rounded-full text-lg font-light tracking-wide
+               bg-sage-500 text-cream-50
+               hover:bg-sage-600 active:scale-95
+               transition-all duration-200 shadow-sm shadow-sage-500/20"
+      >
+        开始
+      </button>
+      <button
+        id="btnPause"
+        type="button"
+        disabled
+        class="px-7 py-3 rounded-full text-lg font-light tracking-wide
+               bg-cream-200 text-sage-700
+               hover:bg-cream-300 active:scale-95
+               transition-all duration-200"
+      >
+        暂停
+      </button>
+      <button
+        id="btnReset"
+        type="button"
+        class="px-7 py-3 rounded-full text-lg font-light tracking-wide
+               bg-transparent text-sage-500 border border-sage-400/40
+               hover:bg-cream-200/60 active:scale-95
+               transition-all duration-200"
+      >
+        重置
+      </button>
+    </div>
+  </main>
+
+  <script>
+    (() => {
+      const TOTAL_SECONDS = 25 * 60;
+      const CIRCUMFERENCE = 2 * Math.PI * 88; // ≈ 552.92
+
+      const timeDisplay = document.getElementById("timeDisplay");
+      const progressRing = document.getElementById("progressRing");
+      const statusLabel = document.getElementById("statusLabel");
+      const btnStart = document.getElementById("btnStart");
+      const btnPause = document.getElementById("btnPause");
+      const btnReset = document.getElementById("btnReset");
+
+      progressRing.style.strokeDasharray = String(CIRCUMFERENCE);
+
+      let remaining = TOTAL_SECONDS;
+      let timerId = null;
+      let running = false;
+
+      function formatTime(seconds) {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+      }
+
+      function updateUI() {
+        timeDisplay.textContent = formatTime(remaining);
+        const progress = remaining / TOTAL_SECONDS;
+        const offset = CIRCUMFERENCE * (1 - progress);
+        progressRing.style.strokeDashoffset = String(offset);
+      }
+
+      function setButtons({ start, pause }) {
+        btnStart.disabled = !start;
+        btnPause.disabled = !pause;
+      }
+
+      function playChime() {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const now = ctx.currentTime;
+
+          const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+          notes.forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = "sine";
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0, now + i * 0.18);
+            gain.gain.linearRampToValueAtTime(0.18, now + i * 0.18 + 0.04);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.18 + 0.5);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + i * 0.18);
+            osc.stop(now + i * 0.18 + 0.55);
+          });
+        } catch (_) {
+          // Audio unavailable — silently ignore
+        }
+      }
+
+      function tick() {
+        if (remaining <= 0) {
+          clearInterval(timerId);
+          timerId = null;
+          running = false;
+          remaining = 0;
+          updateUI();
+          statusLabel.textContent = "完成";
+          setButtons({ start: false, pause: false });
+          playChime();
+          return;
+        }
+        remaining -= 1;
+        updateUI();
+      }
+
+      function start() {
+        if (running || remaining <= 0) return;
+        running = true;
+        statusLabel.textContent = "专注中";
+        setButtons({ start: false, pause: true });
+        timerId = setInterval(tick, 1000);
+      }
+
+      function pause() {
+        if (!running) return;
+        running = false;
+        clearInterval(timerId);
+        timerId = null;
+        statusLabel.textContent = "已暂停";
+        setButtons({ start: true, pause: false });
+      }
+
+      function reset() {
+        running = false;
+        clearInterval(timerId);
+        timerId = null;
+        remaining = TOTAL_SECONDS;
+        statusLabel.textContent = "就绪";
+        setButtons({ start: true, pause: false });
+        updateUI();
+      }
+
+      btnStart.addEventListener("click", start);
+      btnPause.addEventListener("click", pause);
+      btnReset.addEventListener("click", reset);
+
+      updateUI();
+      setButtons({ start: true, pause: false });
+    })();
+  </script>
+</body>
+</html>

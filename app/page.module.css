@@ -1,0 +1,27 @@
+/* 一张纸：页头贴边缘，正文收在中间 */
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  max-width: var(--shell);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: clamp(48px, 9vh, 96px) 0 48px;
+}
+
+@media (max-width: 640px) {
+  .shell {
+    padding: 0 20px;
+  }
+
+  .main {
+    padding: 40px 0 32px;
+  }
+}

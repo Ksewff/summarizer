@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>待办清单</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: {
+              400: "#9ca3af",
+              500: "#6b7280",
+              600: "#4b5563",
+              700: "#374151",
+              800: "#1f2937",
+            },
+          },
+          fontFamily: {
+            soft: ['"Segoe UI"', '"PingFang SC"', '"Hiragino Sans GB"', '"Microsoft YaHei"', "sans-serif"],
+          },
+          keyframes: {
+            fadeIn: {
+              from: { opacity: "0", transform: "translateY(6px)" },
+              to: { opacity: "1", transform: "translateY(0)" },
+            },
+            softPop: {
+              from: { opacity: "0", transform: "scale(0.98)" },
+              to: { opacity: "1", transform: "scale(1)" },
+            },
+          },
+          animation: {
+            "fade-in": "fadeIn 0.45s ease-out",
+            "soft-pop": "softPop 0.25s ease-out",
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    body {
+      background:
+        radial-gradient(ellipse at 20% 0%, rgba(156, 163, 175, 0.08) 0%, transparent 45%),
+        radial-gradient(ellipse at 80% 100%, rgba(156, 163, 175, 0.06) 0%, transparent 40%),
+        #fafafa;
+    }
+
+    .todo-text {
+      transition: color 0.2s ease, text-decoration-color 0.2s ease;
+    }
+
+    .todo-done .todo-text {
+      text-decoration: line-through;
+      text-decoration-thickness: 1.5px;
+      color: #9ca3af;
+    }
+
+    .check-box {
+      transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+    }
+
+    .todo-done .check-box {
+      background-color: #6b7280;
+      border-color: #6b7280;
+    }
+
+    .empty-hint {
+      letter-spacing: 0.08em;
+    }
+  </style>
+</head>
+<body class="min-h-screen font-soft text-ink-700 flex items-center justify-center p-6">
+  <main class="w-full max-w-lg animate-fade-in">
+    <!-- Header -->
+    <header class="mb-8 text-center">
+      <h1 class="text-3xl md:text-4xl font-light tracking-wide text-ink-800">待办清单</h1>
+      <p class="mt-2 text-base text-ink-400 font-light">记下今天想完成的事</p>
+    </header>
+
+    <!-- Card -->
+    <section class="bg-white rounded-3xl shadow-sm shadow-gray-200/80 border border-gray-100 p-6 md:p-8">
+      <!-- Add form -->
+      <form id="todoForm" class="flex gap-3">
+        <input
+          id="todoInput"
+          type="text"
+          maxlength="120"
+          placeholder="添加新任务…"
+          autocomplete="off"
+          class="flex-1 min-w-0 px-5 py-3.5 rounded-2xl text-lg font-light
+                 bg-gray-50 text-ink-800 placeholder:text-ink-400
+                 border border-transparent
+                 focus:outline-none focus:bg-white focus:border-gray-200
+                 transition-colors duration-200"
+        />
+        <button
+          type="submit"
+          class="shrink-0 px-5 py-3.5 rounded-2xl text-lg font-light
+                 bg-ink-700 text-white
+                 hover:bg-ink-800 active:scale-95
+                 transition-all duration-200"
+        >
+          添加
+        </button>
+      </form>
+
+      <!-- List -->
+      <ul id="todoList" class="mt-6 space-y-2" aria-live="polite"></ul>
+
+      <p id="emptyState" class="empty-hint hidden mt-10 mb-4 text-center text-ink-400 font-light text-base">
+        还没有任务，先添加一件吧
+      </p>
+
+      <!-- Footer stats -->
+      <footer class="mt-6 pt-5 border-t border-gray-100 flex items-center justify-between">
+        <p id="stats" class="text-base font-light text-ink-500">还有 0 项未完成</p>
+        <button
+          id="btnClearDone"
+          type="button"
+          class="text-sm font-light text-ink-400 hover:text-ink-600 transition-colors duration-200"
+        >
+          清除已完成
+        </button>
+      </footer>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const STORAGE_KEY = "minimal-todo-list";
+
+      const form = document.getElementById("todoForm");
+      const input = document.getElementById("todoInput");
+      const listEl = document.getElementById("todoList");
+      const emptyState = document.getElementById("emptyState");
+      const statsEl = document.getElementById("stats");
+      const btnClearDone = document.getElementById("btnClearDone");
+
+      /** @type {{ id: string, text: string, done: boolean }[]} */
+      let todos = loadTodos();
+
+      function loadTodos() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return [];
+          const parsed = JSON.parse(raw);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
+        }
+      }
+
+      function saveTodos() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+      }
+
+      function uid() {
+        return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+      }
+
+      function updateStats() {
+        const left = todos.filter((t) => !t.done).length;
+        statsEl.textContent = `还有 ${left} 项未完成`;
+        emptyState.classList.toggle("hidden", todos.length > 0);
+        listEl.classList.toggle("hidden", todos.length === 0);
+      }
+
+      function createItem(todo) {
+        const li = document.createElement("li");
+        li.dataset.id = todo.id;
+        li.className = [
+          "group flex items-center gap-3 px-4 py-3.5 rounded-2xl",
+          "hover:bg-gray-50 transition-colors duration-200 animate-soft-pop",
+          todo.done ? "todo-done" : "",
+        ]
+          .filter(Boolean)
+          .join(" ");
+
+        const check = document.createElement("button");
+        check.type = "button";
+        check.setAttribute("aria-label", todo.done ? "标记为未完成" : "标记为已完成");
+        check.className =
+          "check-box shrink-0 w-6 h-6 rounded-full border-2 border-gray-300 " +
+          "flex items-center justify-center text-white text-xs " +
+          "hover:border-ink-500 active:scale-90";
+        check.innerHTML = todo.done
+          ? `<svg class="w-3.5 h-3.5" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+               <path d="M2.5 6.2L4.8 8.5L9.5 3.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+             </svg>`
+          : "";
+
+        const text = document.createElement("button");
+        text.type = "button";
+        text.className =
+          "todo-text flex-1 min-w-0 text-left text-lg font-light text-ink-700 break-words";
+        text.textContent = todo.text;
+
+        const del = document.createElement("button");
+        del.type = "button";
+        del.setAttribute("aria-label", "删除任务");
+        del.className =
+          "shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100 " +
+          "w-9 h-9 rounded-xl text-ink-400 hover:text-red-400 hover:bg-red-50 " +
+          "flex items-center justify-center transition-all duration-200";
+        del.innerHTML = `<svg class="w-4 h-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>`;
+
+        const toggle = () => {
+          const item = todos.find((t) => t.id === todo.id);
+          if (!item) return;
+          item.done = !item.done;
+          saveTodos();
+          render();
+        };
+
+        check.addEventListener("click", toggle);
+        text.addEventListener("click", toggle);
+
+        del.addEventListener("click", (e) => {
+          e.stopPropagation();
+          todos = todos.filter((t) => t.id !== todo.id);
+          saveTodos();
+          render();
+        });
+
+        li.append(check, text, del);
+        return li;
+      }
+
+      function render() {
+        listEl.innerHTML = "";
+        todos.forEach((todo) => listEl.appendChild(createItem(todo)));
+        updateStats();
+      }
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const text = input.value.trim();
+        if (!text) return;
+
+        todos.unshift({ id: uid(), text, done: false });
+        saveTodos();
+        input.value = "";
+        input.focus();
+        render();
+      });
+
+      btnClearDone.addEventListener("click", () => {
+        if (!todos.some((t) => t.done)) return;
+        todos = todos.filter((t) => !t.done);
+        saveTodos();
+        render();
+      });
+
+      render();
+      input.focus();
+    })();
+  </script>
+</body>
+</html>

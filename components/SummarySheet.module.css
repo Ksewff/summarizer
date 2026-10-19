@@ -1,0 +1,74 @@
+.sheet {
+  animation: sheetIn 320ms var(--ease-out) both;
+}
+
+@keyframes sheetIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.meta {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--quiet);
+}
+
+.docTitle {
+  margin-top: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+/* 三段等权重，不用编号——摘要不是序列 */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 22px;
+}
+
+.sentence {
+  font-family: var(--font-read);
+  font-size: 18px;
+  line-height: 1.85;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 32px;
+}
+
+.action {
+  height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--edge);
+  border-radius: var(--r-control);
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  color: var(--quiet);
+  transition:
+    color 160ms linear,
+    border-color 160ms linear;
+}
+
+.action:hover {
+  color: var(--ink);
+  border-color: var(--quiet);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet {
+    animation: none;
+  }
+}

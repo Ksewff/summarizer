@@ -1,0 +1,121 @@
+/*
+  加载动画：不转圈，把「长文压成三句话」这件事演一遍。
+  时间轴（与 Summarizer.tsx 的 ANIMATION_MS 对齐）：
+    A 读取   0 → 960ms    自上而下依次点亮
+    B 压缩   900 → 1600ms 自下而上逐根折叠
+    C 成文   2000 → 2450ms 剩下的三根长成三行文字
+    之后     2450ms 起    仍在等接口时，三根条静静呼吸
+*/
+
+.loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 460ms var(--ease-out);
+}
+
+.loader[data-dim="true"] {
+  opacity: 0;
+}
+
+.compress {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 460px;
+}
+
+.bar {
+  display: block;
+  width: var(--w);
+  height: 3px;
+  margin-bottom: 14px;
+  border-radius: var(--r-bar);
+  background: var(--bloom);
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation:
+    read 320ms var(--ease-out) calc(var(--i) * 60ms) both,
+    collapse 260ms var(--ease-out) calc(900ms + (11 - var(--i)) * 55ms) both;
+}
+
+/* 留下的三根：不折叠，而是长高、褪成纸的底色，像三行字浮出来 */
+.bar[data-keep] {
+  animation:
+    read 320ms var(--ease-out) calc(var(--i) * 60ms) both,
+    become 450ms var(--ease-out) 2000ms both,
+    breathe 1600ms ease-in-out 2450ms infinite alternate;
+}
+
+@keyframes read {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes collapse {
+  0% {
+    opacity: 1;
+    transform: scaleX(1);
+    height: 3px;
+    margin-bottom: 14px;
+  }
+  35% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(0.12);
+    height: 0;
+    margin-bottom: 0;
+  }
+}
+
+@keyframes become {
+  from {
+    height: 3px;
+    margin-bottom: 8px;
+    background: var(--bloom);
+  }
+  to {
+    height: 22px;
+    margin-bottom: 8px;
+    background: var(--haze);
+  }
+}
+
+@keyframes breathe {
+  from {
+    opacity: 0.3;
+  }
+  to {
+    opacity: 0.62;
+  }
+}
+
+/* 减少动效：跳过 A、B，直接给出「三行文字」的静止画面 */
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    animation: none !important;
+    transform: scaleX(1);
+    opacity: 0;
+    height: 0;
+    margin-bottom: 0;
+  }
+
+  .bar[data-keep] {
+    opacity: 1;
+    height: 22px;
+    margin-bottom: 8px;
+    background: var(--haze);
+  }
+}
+
+@media (max-width: 640px) {
+  .compress {
+    max-width: 100%;
+  }
+}
