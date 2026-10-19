@@ -4,7 +4,7 @@ import { summarize } from "@/lib/summarize";
 import type { SummarizeError } from "@/lib/types";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+//export const dynamic = "force-dynamic";
 
 /** 正文下限，低于这个长度摘要没有意义 */
 const MIN_CHARS = 200;
